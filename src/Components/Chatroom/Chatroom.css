@@ -1,0 +1,17 @@
+.chatroom-container {
+  margin-left: 200px;
+  height: 100vh;
+}
+
+.users-in-room {
+  /* width: calc(100% - 200px); */
+  /* width: 100vh; */
+  height: 10vh;
+  /* margin-left: 200px; */
+  background-color: #111;
+}
+
+.message-input > input {
+  color: white;
+
+}

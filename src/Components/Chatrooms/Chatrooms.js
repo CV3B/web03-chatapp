@@ -9,7 +9,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import LogoutIcon from '@mui/icons-material/Logout';
 
-import { BrowserRouter as Router, Link, useParams } from "react-router-dom";
+import { BrowserRouter as Router, Link, useParams, Route } from "react-router-dom";
 
 import "./Chatrooms.css";
 
@@ -27,7 +27,9 @@ export default function Chatrooms() {
         {rooms.map((room, i) => { 
 
           return(
-            <a><Button component={Link} to={`/chat/${room}`} >{room}</Button></a>
+            <div key={i}>
+              <a><Button component={Link} to={`/chat/${room}`} color="white" >{room}</Button></a>
+            </div>
         )})}
 
         {/* <div className="sidebar-footer" >
@@ -35,8 +37,8 @@ export default function Chatrooms() {
           <Button startIcon={<LogoutIcon />} color="white" >Logout</Button>
         </div> */}
       </div>
-      <Paper elevation={12} className="dashboard">
-      </Paper>
+      {/* <Paper elevation={12} className="dashboard">
+      </Paper> */}
     </div>
   );
 }
