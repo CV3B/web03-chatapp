@@ -36,6 +36,16 @@ const theme = createTheme({
   }
 });
 
+
+/* 
+  TODO:
+
+    * Visar användare i rummet - online status
+    * Ta bort meddelande - Ta bort användare från ett rum
+    * Profil inställningar
+    * Meddela bilder
+
+*/
 function App() {
   return (
     <div className="App">

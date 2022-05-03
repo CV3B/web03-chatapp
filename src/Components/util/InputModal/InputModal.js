@@ -8,6 +8,29 @@ import Typography from '@mui/material/Typography';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import TextField from '@mui/material/TextField';
 
+import { Paper } from "@mui/material";
+
+
+/*
+  Förklara hur inputModal fungear - gör bättre
+  const [open, setOpen] = useState(false);
+
+
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
+  const sendDataToParentComp = (dataFromChildComp) => {
+
+  };
+
+  <form id={unikt id} onSubmit={funktion som kallas när "submit" knappen är ner tryckt}>
+    <InputModal id={unikt id} title="Add friend" sendDataToParentComp={sendDataToParentComp} open={open} handleClose={handleClose} />
+  </form>
+
+
+*/
+
+
 const style = {
   position: 'absolute',
   top: '50%',
@@ -19,18 +42,24 @@ const style = {
   boxShadow: 24,
   p: 4,
 };
-
-export default function InputModal({title, sendDataToParentComp}) {
-  const [open, setOpen] = React.useState(false);
+//TODO Fixa en from för att lättare kunna skicka info - nested forms
+export default function InputModal({id, title, sendDataToParentComp, open, handleClose}) {
+  // const [open, setOpen] = React.useState(false);
   const [inputText, setInputText] = React.useState("");
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  // const handleOpen = () => setOpen(true);
+  // const handleClose = () => setOpen(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("even work?")
+    alert(title)
+  }
 
   return (
     <div>
-    <a><Button startIcon={<FormatListBulletedIcon />} color="white" onClick={handleOpen} >Create room</Button></a>
-
+    {/* <a><Button startIcon={<FormatListBulletedIcon />} color="white" onClick={handleOpen} >Create room</Button></a> */}
+    <div id="inputModal-form" onSubmit={handleSubmit} >
       <Modal
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
@@ -48,13 +77,14 @@ export default function InputModal({title, sendDataToParentComp}) {
               {title}
             </Typography>
             <Typography id="transition-modal-description" sx={{ mt: 2 }}>
-              <TextField id="standard-basic" label="Standard" variant="standard" onChange={(e)=> {setInputText(e.target.value); console.log(inputText)}} />
-              <Button variant='contained' color="success" onClick={()=> {sendDataToParentComp(inputText); handleClose();}} >Confirm</Button>
+              <TextField id="standard-basic" label="Standard" variant="standard"  onChange={(e)=> {setInputText(e.target.value); console.log(inputText)}} />
+              <Button type="submit" form={id} variant='contained' color="success"  onClick={()=> {sendDataToParentComp(inputText); handleClose();}} >Confirm</Button>
               <Button variant='contained' color="error" onClick={handleClose} >Close</Button>
             </Typography>
           </Box>
         </Fade>
       </Modal>
+      </div>
     </div>
   );
 }

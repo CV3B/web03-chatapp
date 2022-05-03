@@ -61,6 +61,7 @@ export default function Message(props) {
   // };
 
   const dummy = useRef();
+  // console.log("haha error", error)
   return(
     <div>
       {error && <strong>Error: {JSON.stringify(error)}</strong>}
