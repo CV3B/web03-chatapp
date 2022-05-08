@@ -41,7 +41,7 @@ const theme = createTheme({
   TODO:
 
     * Visar användare i rummet - online status
-    * Ta bort meddelande - Ta bort användare från ett rum
+    * Ta bort meddelande - Ta bort användare från ett rum - Lämna rum
     * Profil inställningar
     * Meddela bilder
 

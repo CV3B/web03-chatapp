@@ -5,10 +5,11 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
 import DirectionsIcon from '@mui/icons-material/Directions';
-
-import { collection, query, where, getDocs, addDoc, serverTimestamp, updateDoc, arrayUnion, doc  } from "firebase/firestore";
+import PhotoCamera from '@mui/icons-material/PhotoCamera';
+import { collection, query, where, getDocs, addDoc, serverTimestamp, updateDoc, arrayUnion, doc, arrayRemove, getDoc, deleteDoc  } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "../Firebase/Firebase";
+import { getStorage, ref, uploadBytes } from "firebase/storage";
 
 //* MUI imports *//
 import { Paper, Button, Typography, Divider } from "@mui/material";
@@ -19,11 +20,11 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import { BrowserRouter as Router, Link, useParams, Route } from "react-router-dom";
+import { BrowserRouter as Router, Link, useParams, Route, useNavigate } from "react-router-dom";
 
 import Avatar from '@mui/material/Avatar';
 import AvatarGroup from '@mui/material/AvatarGroup';
-
+import { styled } from '@mui/material/styles';
 import Message from "../Message/Message";
 import InputModal from "../util/InputModal/InputModal";
 import { useCollection } from 'react-firebase-hooks/firestore';
@@ -31,6 +32,11 @@ import { useCollection } from 'react-firebase-hooks/firestore';
 import ActiveUsers from "./ActiveUsers/ActiveUsers";
 
 import "./Chatroom.css";
+import { Add } from "@mui/icons-material";
+
+const Input = styled('input')({
+  display: 'none',
+});
 
 
 export default function Chatroom() {
@@ -38,9 +44,12 @@ export default function Chatroom() {
   const [open, setOpen] = useState(false);
   const [username, setUsername] = useState("");
   const [usernameId, setUsernameId] = useState("");
-  const [bool, setBool] = useState(false);
+  const [file, setFile] = useState();
+  const [fileName, setFileName] = useState("");
   
   let { room } = useParams();
+
+  
 
     // const [usersInRoom, usersInRoomLoading, usersInRoomError] = useCollection(
     // query(doc(db, "rooms", room)), 
@@ -64,6 +73,13 @@ export default function Chatroom() {
     e.preventDefault();
 
     const { uid, photoURL } = auth.currentUser;
+
+    if(!message && fileName) {
+      upLoadFile()
+      setFile();
+      setFileName("");
+      return;
+    }
 
     try {
        await addDoc(collection(db, "rooms", room, "messages"), {
@@ -154,6 +170,68 @@ export default function Chatroom() {
       console.error(err);
     }
   }
+  const navigate = useNavigate();
+  const leaveRoom = async (e) => {
+    // room = roomId?, remove arr uid == auth.uid
+
+      const docRef = doc(db, "rooms", room);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        console.log("Document data:", docSnap.data());
+        if(docSnap.data().users.lenght === 1 || auth.currentUser.uid === docSnap.data().uid) {
+          console.log("1 USER KVAR!")
+          navigate("/chat")
+
+          await deleteDoc(docRef);
+
+        } else {
+          console.log("FLERA KVAR")
+          try {
+            navigate("/chat")
+
+            await updateDoc(docRef, {
+              users: arrayRemove(auth.currentUser.uid)
+            });
+
+          } catch (err) {
+            console.error(err);
+          }
+        }
+
+
+      } else {
+        // doc.data() will be undefined in this case
+        console.log("No such document!");
+      }
+
+      
+    // try {
+    //   await updateDoc(doc(db, "rooms", room), {
+    //     users: arrayRemove(auth.currentUser.uid)
+    //   });
+    // } catch (err) {
+    //   console.error(err);
+    // }
+  }
+
+  const handleFileInput = (e) => {
+    setFile(e.target.files[0])
+    setFileName(e.target.files[0].name)
+  }
+
+  const upLoadFile = () => {
+    const storage = getStorage();
+    const storageRef = ref(storage, fileName);
+
+    // Create file metadata including the content type
+    /** @type {any} */
+    const metadata = {
+      contentType: 'image/jpeg',
+    };
+
+    const uploadTask = uploadBytes(storageRef, file, metadata);
+  }
 
   const didMountRef = useRef(false);
   useEffect(() => {
@@ -191,10 +269,13 @@ export default function Chatroom() {
 
       
 
-      <Button onClick={()=> {console.log()}} >AAAAAAAA</Button>
+      <Button onClick={()=> {console.log(fileName)}} >AAAAAAAA</Button>
       <div className="users-in-room">
 
         <ActiveUsers />
+        <IconButton onClick={(e)=> leaveRoom(e)} >
+          <AddCircleOutlineIcon />
+        </IconButton>
 
         <Paper
           component="form"
@@ -227,6 +308,16 @@ export default function Chatroom() {
         <IconButton type="submit" sx={{ p: '10px' }} aria-label="search" color="white">
          <SearchIcon />
         </IconButton>
+
+        <label htmlFor="icon-button-file">
+          <Input accept="image/*" id="icon-button-file" type="file" onChange={(e)=> handleFileInput(e)} />
+          {/* <IconButton color="primary" aria-label="upload picture" component="span">
+            <PhotoCamera />
+            {fileName}
+          </IconButton> */}
+          <Button size="large" startIcon={<PhotoCamera />} color="primary" aria-label="upload picture" component="span" >{fileName}</Button>
+        </label>
+
       </Paper>
       </div>
       {/* </form> */}

@@ -16,8 +16,11 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { auth, signInWithEmailAndPassword, db } from "../Firebase/Firebase";
 
-import { getFirestore, collection, orderBy, limit, where, doc, query } from 'firebase/firestore';
+import { getFirestore, collection, orderBy, limit, where, doc, quer, deleteDoc, query  } from 'firebase/firestore';
 
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import Fade from '@mui/material/Fade';
 
 import { useCollection } from 'react-firebase-hooks/firestore';
 
@@ -35,6 +38,8 @@ export default function Message(props) {
   //     idField: 'id',
   //   }
   // );
+  
+  
   let { room } = useParams();
   const [value, loading, error] = useCollection(
     query(collection(db, "rooms", room, "messages"), orderBy("createdAt")),
@@ -44,7 +49,7 @@ export default function Message(props) {
   );
 
 
-
+ 
   // const fetchAvailableTimesData = async () => {
   //   try {
   //     const q = query(collection(db, "available-dates"), where("date", "==", props.date));
@@ -87,14 +92,61 @@ export default function Message(props) {
 
 function ChatMessage(props) {
   const { text, uid, photoURL, createdAt } = props.message;
+  // const [anchorEl, setAnchorEl] = React.useState(null);
+  // const open = Boolean(anchorEl);
+  // let { room } = useParams();
 
   const messageClass = uid === auth.currentUser.uid ? 'sent' : 'received';
+  // const handleClick = (event) => {
+  //   setAnchorEl(event.currentTarget);
+  // };
+  // const handleClose = () => {
+  //   setAnchorEl(null);
+  // };
 
+  // const deleteMessage = async () => {
+  //   try {
+  //     await deleteDoc(query(collection(db, "rooms", room, "messages"), where("text", "==", text)));
+  //   } catch(err) {
+  //     console.error(err)
+  //   }
+  // }
+
+  // const handleDeleteMessage = (e) => {
+  //   handleClose();
+  //   deleteMessage()
+  //   console.log(uid)
+  // }
   return (<>
-    <div className={`message ${messageClass}`}>
+    <div id="message-container" className={`message ${messageClass}`}>
       <img src={photoURL || 'https://api.adorable.io/avatars/23/abott@adorable.png'} />
       <p>{text}</p>
       {JSON.stringify(createdAt)}
+
+    {/* <div>
+      <Button
+        id="fade-button"
+        aria-controls={open ? 'fade-menu' : undefined}
+        aria-haspopup="true"
+        aria-expanded={open ? 'true' : undefined}
+        onClick={handleClick}
+      >
+        Dashboard
+      </Button>
+      <Menu
+        id="fade-menu"
+        MenuListProps={{
+          'aria-labelledby': 'fade-button',
+        }}
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        TransitionComponent={Fade}
+      >
+        <MenuItem onClick={(e) => handleDeleteMessage(e)}>Delete message</MenuItem>
+      </Menu> 
+    </div> */}
+
     </div>
   </>)
 }
