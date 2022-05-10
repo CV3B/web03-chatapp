@@ -9,7 +9,7 @@ import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import { collection, query, where, getDocs, addDoc, serverTimestamp, updateDoc, arrayUnion, doc, arrayRemove, getDoc, deleteDoc  } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "../Firebase/Firebase";
-import { getStorage, ref, uploadBytes } from "firebase/storage";
+import { getStorage, ref, uploadBytes, uploadBytesResumable, getDownloadURL, getMetadata, listAll  } from "firebase/storage";
 
 //* MUI imports *//
 import { Paper, Button, Typography, Divider } from "@mui/material";
@@ -220,18 +220,110 @@ export default function Chatroom() {
     setFileName(e.target.files[0].name)
   }
 
+  const getFiles = () => {
+    const storage = getStorage();
+
+    // Create a reference under which you want to list
+    const listRef = ref(storage, 'test/');
+    
+    // Find all the prefixes and items.
+    listAll(listRef)
+      .then((res) => {
+        res.prefixes.forEach((folderRef) => {
+          // All the prefixes under listRef.
+          // You may call listAll() recursively on them.
+          console.log("frefix", folderRef)
+        });
+        res.items.forEach((itemRef) => {
+          // All the items under listRef.
+          console.log("item", itemRef)
+          // const pathReference = ref(storage, "test/cm7v4jwetbt21.png");
+          // const pathReference = ref(storage, 'gs://bucket/test/cm7v4jwetbt21.png');
+          const pathReference = ref(storage, 'https://firebasestorage.googleapis.com/b/bucket/o/test%20cm7v4jwetbt21.png');
+          console.log("alllå",pathReference)
+        
+
+        });
+      }).catch((error) => {
+        // Uh-oh, an error occurred!<
+      });
+
+
+      // const storage = getStorage();
+      const starsRef = ref(storage, 'test/cm7v4jwetbt21.png');
+
+      // Get the download URL
+      getDownloadURL(starsRef)
+        .then((url) => {
+          // Insert url into an <img> tag to "download"
+          console.log("SUIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII", url)
+        })
+        .catch((error) => {
+         console.error(error)
+        });
+  }
+
   const upLoadFile = () => {
     const storage = getStorage();
-    const storageRef = ref(storage, fileName);
-
+    const storageRef = ref(storage, room+"/"+fileName);
+    console.log("ASDASDASKDASPDKN",storageRef, storage)
     // Create file metadata including the content type
     /** @type {any} */
     const metadata = {
       contentType: 'image/jpeg',
+      
+      customMetadata: {
+        roomId: room,
+        uid: auth.currentUser.uid
+      }
     };
 
-    const uploadTask = uploadBytes(storageRef, file, metadata);
-  }
+    const uploadTask = uploadBytesResumable(storageRef, file, metadata);
+
+    // Listen for state changes, errors, and completion of the upload.
+    uploadTask.on('state_changed',
+      (snapshot) => {
+        // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        console.log('Upload is ' + progress + '% done');
+        // eslint-disable-next-line default-case
+        switch (snapshot.state) {
+          case 'paused':
+            console.log('Upload is paused');
+            break;
+          case 'running':
+            console.log('Upload is running');
+            break;
+        }
+      }, 
+      (error) => {
+        // A full list of error codes is available at
+        // https://firebase.google.com/docs/storage/web/handle-errors
+        // eslint-disable-next-line default-case
+        switch (error.code) {
+          case 'storage/unauthorized':
+            // User doesn't have permission to access the object
+            break;
+          case 'storage/canceled':
+            // User canceled the upload
+            break;
+
+          // ...
+
+          case 'storage/unknown':
+            // Unknown error occurred, inspect error.serverResponse
+            break;
+        }
+      }, 
+      () => {
+        // Upload completed successfully, now we can get the download URL
+        console.log("ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ", uploadTask.snapshot.ref)
+        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+          console.log('File available at', downloadURL);
+        });
+      }
+    );
+  };
 
   const didMountRef = useRef(false);
   useEffect(() => {
@@ -269,7 +361,7 @@ export default function Chatroom() {
 
       
 
-      <Button onClick={()=> {console.log(fileName)}} >AAAAAAAA</Button>
+      <Button onClick={()=> {getFiles()}} >AAAAAAAA</Button>
       <div className="users-in-room">
 
         <ActiveUsers />
