@@ -10,7 +10,7 @@ import { collection, query, where, getDocs, addDoc, serverTimestamp, updateDoc, 
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "../Firebase/Firebase";
 import { getStorage, ref, uploadBytes, uploadBytesResumable, getDownloadURL, getMetadata, listAll  } from "firebase/storage";
-
+import { useDownloadURL } from 'react-firebase-hooks/storage';
 //* MUI imports *//
 import { Paper, Button, Typography, Divider } from "@mui/material";
 
@@ -46,6 +46,7 @@ export default function Chatroom() {
   const [usernameId, setUsernameId] = useState("");
   const [file, setFile] = useState();
   const [fileName, setFileName] = useState("");
+  const [imgMessages, setImgMessages] = useState([]);
   
   let { room } = useParams();
 
@@ -86,7 +87,8 @@ export default function Chatroom() {
         text: message,
         createdAt: serverTimestamp(),
         uid,
-        photoURL
+        photoURL,
+        type: "text"
       });
 
     } catch (err) {
@@ -224,7 +226,9 @@ export default function Chatroom() {
     const storage = getStorage();
 
     // Create a reference under which you want to list
-    const listRef = ref(storage, 'test/');
+    const listRef = ref(storage, room+"/");
+    
+    const arrImgMessages = [];
     
     // Find all the prefixes and items.
     listAll(listRef)
@@ -235,12 +239,39 @@ export default function Chatroom() {
           console.log("frefix", folderRef)
         });
         res.items.forEach((itemRef) => {
-          // All the items under listRef.
+            // All the items under listRef.
           console.log("item", itemRef)
+           // const storage = getStorage();
+           const storageFilePath = room + "/" +itemRef.name
+           console.log("asdASDASDASDA", storageFilePath)
+           const starsRef = ref(storage, storageFilePath);
+            
+           // Get the download URL
+           getDownloadURL(starsRef)
+             .then((url) => {
+               // Insert url into an <img> tag to "download"
+               console.log("SUIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII", url)
+               // Get metadata properties
+                getMetadata(starsRef)
+                .then((metadata) => {
+                  // Metadata now contains the metadata for 'images/forest.jpg'
+                arrImgMessages.push({"url": url, "createdAt": metadata.createdAt });
+
+                })
+                .catch((error) => {
+                  // Uh-oh, an error occurred!
+                });
+                
+             })
+             .catch((error) => {
+              console.error(error)
+             });
+
+            
           // const pathReference = ref(storage, "test/cm7v4jwetbt21.png");
           // const pathReference = ref(storage, 'gs://bucket/test/cm7v4jwetbt21.png');
-          const pathReference = ref(storage, 'https://firebasestorage.googleapis.com/b/bucket/o/test%20cm7v4jwetbt21.png');
-          console.log("alllå",pathReference)
+          // const pathReference = ref(storage, 'https://firebasestorage.googleapis.com/b/bucket/o/test%20cm7v4jwetbt21.png');
+          // console.log("alllå",pathReference)
         
 
         });
@@ -249,18 +280,24 @@ export default function Chatroom() {
       });
 
 
-      // const storage = getStorage();
-      const starsRef = ref(storage, 'test/cm7v4jwetbt21.png');
+      setImgMessages(arrImgMessages)
+  }
 
-      // Get the download URL
-      getDownloadURL(starsRef)
-        .then((url) => {
-          // Insert url into an <img> tag to "download"
-          console.log("SUIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII", url)
-        })
-        .catch((error) => {
-         console.error(error)
-        });
+  const test321 = async (url) => {
+    const { uid, photoURL } = auth.currentUser;
+
+    try {
+      await addDoc(collection(db, "rooms", room, "messages"), {
+       text: url,
+       createdAt: serverTimestamp(),
+       uid,
+       photoURL,
+       type: "img"
+     });
+
+   } catch (err) {
+     console.error(err);
+   }
   }
 
   const upLoadFile = () => {
@@ -274,7 +311,7 @@ export default function Chatroom() {
       
       customMetadata: {
         roomId: room,
-        uid: auth.currentUser.uid
+        uid: auth.currentUser.uid,
       }
     };
 
@@ -320,6 +357,7 @@ export default function Chatroom() {
         console.log("ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ", uploadTask.snapshot.ref)
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
           console.log('File available at', downloadURL);
+          test321(downloadURL)
         });
       }
     );
@@ -338,6 +376,10 @@ export default function Chatroom() {
 
     
   }, [usernameId]);
+
+  useEffect(() => {
+    getFiles()
+  }, [])
 
 
 
@@ -361,7 +403,7 @@ export default function Chatroom() {
 
       
 
-      <Button onClick={()=> {getFiles()}} >AAAAAAAA</Button>
+      <Button onClick={()=> {console.log(imgMessages)}} >AAAAAAAA</Button>
       <div className="users-in-room">
 
         <ActiveUsers />
@@ -380,7 +422,7 @@ export default function Chatroom() {
         </Paper>
       </div>
       <h1 >Tees</h1>
-      <Message />
+      <Message imgMessages={imgMessages} />
       {/* <form onSubmit={handleSubmit}> */}
       <div style={{position: "fixed", bottom: 0, left: "50%", marginLeft: "-100px"}}>
       <Paper

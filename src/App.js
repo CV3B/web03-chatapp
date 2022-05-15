@@ -12,6 +12,7 @@ import Reset from "./Components/Reset/Reset";
 import Home from "./Components/Home/Home";
 import Login from "./Components/Login/Login";
 import Register from "./Components/Register/Register";
+import UserSettings from "./Components/UserSettings/UserSettings";
 
 import "./Components/Chatrooms/Chatrooms.css";
 
@@ -40,10 +41,15 @@ const theme = createTheme({
 /* 
   TODO:
 
-    * Visar användare i rummet - online status
-    * Ta bort meddelande - Ta bort användare från ett rum - Lämna rum
+    * ////Visar användare i rummet - online status
+    * ////Ta bort meddelande - Ta bort användare från ett rum - Lämna rum
     * Profil inställningar
-    * Meddela bilder
+    * ////Meddela bilder 
+    * uid ska bli roomOwner - TITTA NOGA
+    * name ska bli username
+    * CSS
+    * Städa kod
+    * KLAR
 
 */
 function App() {
@@ -59,6 +65,8 @@ function App() {
               <Route exact path="/reset" element={<Reset />} />
               <Route exact path="/login" element={<Login />} />
               <Route exact path="/register" element={<Register />} />
+              <Route exact path="/userSettings" element={<UserSettings />} />
+
               {/* <Route exact path="/test" >
                 <Chatrooms />
               </Route> */}
