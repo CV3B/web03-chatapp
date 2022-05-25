@@ -1,38 +1,34 @@
 import React, { useEffect, useState, useRef } from "react";
 
-import InputBase from '@mui/material/InputBase';
-import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
-import SearchIcon from '@mui/icons-material/Search';
-import DirectionsIcon from '@mui/icons-material/Directions';
-import PhotoCamera from '@mui/icons-material/PhotoCamera';
+//* Firebase imports  *//
 import { collection, query, where, getDocs, addDoc, serverTimestamp, updateDoc, arrayUnion, doc, arrayRemove, getDoc, deleteDoc  } from "firebase/firestore";
-import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "../Firebase/Firebase";
 import { getStorage, ref, uploadBytes, uploadBytesResumable, getDownloadURL, getMetadata, listAll  } from "firebase/storage";
-import { useDownloadURL } from 'react-firebase-hooks/storage';
+
 //* MUI imports *//
+import InputBase from '@mui/material/InputBase';
+import IconButton from '@mui/material/IconButton';
+import SearchIcon from '@mui/icons-material/Search';
+import PhotoCamera from '@mui/icons-material/PhotoCamera';
+import Box from '@mui/material/Box';
 import { Paper, Button, Typography, Divider } from "@mui/material";
-
-import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import SettingsIcon from '@mui/icons-material/Settings';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import LogoutIcon from '@mui/icons-material/Logout';
+import Portal from '@mui/material/Portal';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import { BrowserRouter as Router, Link, useParams, Route, useNavigate } from "react-router-dom";
-
-import Avatar from '@mui/material/Avatar';
-import AvatarGroup from '@mui/material/AvatarGroup';
 import { styled } from '@mui/material/styles';
+
+
+
+
+
+//* Componets imports *//
 import Message from "../Message/Message";
 import InputModal from "../util/InputModal/InputModal";
-import { useCollection } from 'react-firebase-hooks/firestore';
-
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import ActiveUsers from "./ActiveUsers/ActiveUsers";
 
+//* Other imports *//
+import { BrowserRouter as Router, Link, useParams, Route, useNavigate } from "react-router-dom";
 import "./Chatroom.css";
-import { Add } from "@mui/icons-material";
 
 const Input = styled('input')({
   display: 'none',
@@ -47,75 +43,20 @@ export default function Chatroom() {
   const [file, setFile] = useState();
   const [fileName, setFileName] = useState("");
   const [imgMessages, setImgMessages] = useState([]);
-  
+  const [show, setShow] = useState(false);
+
+  const container = useRef(null);
+
+  const dummy = useRef();
+
   let { room } = useParams();
 
-  
-
-    // const [usersInRoom, usersInRoomLoading, usersInRoomError] = useCollection(
-    // query(doc(db, "rooms", room)), 
-    //   {
-    //     idField: 'id',
-    //   }
-    // );
-
-
-
-  // console.log(auth)
-
-  // const handleSubmit = (e) => {
-  //   alert(`The name you entered was: ${message}`);
-  // }
-
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const { uid, photoURL } = auth.currentUser;
-
-    if(!message && fileName) {
-      upLoadFile()
-      setFile();
-      setFileName("");
-      return;
-    }
-
-    try {
-       await addDoc(collection(db, "rooms", room, "messages"), {
-        text: message,
-        createdAt: serverTimestamp(),
-        uid,
-        photoURL,
-        type: "text"
-      });
-
-    } catch (err) {
-      console.error(err);
-    }
-
-    setMessage('');
-    // dummy.current.scrollIntoView({ behavior: 'smooth' });
-  };
-
+  //* Gets data from InputModal input *//
   const sendDataToParentComp = (dataFromChildComp) => {
-    console.log("A A A A A A A", dataFromChildComp);
     setUsername(dataFromChildComp)
-    // setTimeout(() => { handleCreateRoom(dataFromChildComp); }, 1000);
-    // handleCreateRoom(dataFromChildComp);
   };
 
-
-  const handleAddFriend = (e) => {
-    e.preventDefault();
-
-    // alert("ADD FRIEND")
-    console.log("handleAddFriend")
-    handleOpen();
-  }
-  // get user where name = freind
-
+  //* Gets username id from sendDataToParentComp *//
   const fetchUsernameUid = async () => {
     console.log("fetchUsernameUid")
     try {
@@ -136,92 +77,43 @@ export default function Chatroom() {
 
     } catch (err) {
       console.error(err);
-
     }
   };
 
-  const handleConfirm = async (e) => {
-    e.preventDefault();
 
-    console.log("handleConfirm")
-    const { uid, photoURL } = auth.currentUser;
-    
-      
-    fetchUsernameUid()
-    console.log("USERNAMEID 3", usernameId)
-    // if(usernameId) {
-    //   setBool(true)
-    //   console.log("treue")
-    // } else {
-    //   setBool(false)
-    //   console.log("false  ")
-
-    // }
-
-    
-    // setUsername("");
-  }
-
-    const temp = async () => {
-    try {
-      await updateDoc(doc(db, "rooms", room), {
-        users: arrayUnion(usernameId)
-      });
-      console.log("q", usernameId)
-    } catch (err) {
-      console.error(err);
-    }
-  }
+  //* Makes user leave room *//
   const navigate = useNavigate();
   const leaveRoom = async (e) => {
-    // room = roomId?, remove arr uid == auth.uid
 
-      const docRef = doc(db, "rooms", room);
-      const docSnap = await getDoc(docRef);
-      
-      if (docSnap.exists()) {
-        console.log("Document data:", docSnap.data());
-        if(docSnap.data().users.lenght === 1 || auth.currentUser.uid === docSnap.data().uid) {
-          console.log("1 USER KVAR!")
-          navigate("/chat")
+    const docRef = doc(db, "rooms", room);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      if(docSnap.data().users.lenght === 1 || auth.currentUser.uid === docSnap.data().uid) {
+        console.log("1 USER KVAR!")
+        navigate("/chat")
 
-          await deleteDoc(docRef);
-
-        } else {
-          console.log("FLERA KVAR")
-          try {
-            navigate("/chat")
-
-            await updateDoc(docRef, {
-              users: arrayRemove(auth.currentUser.uid)
-            });
-
-          } catch (err) {
-            console.error(err);
-          }
-        }
-
+        await deleteDoc(docRef);
 
       } else {
-        // doc.data() will be undefined in this case
-        console.log("No such document!");
+        console.log("FLERA KVAR")
+        try {
+          navigate("/chat")
+
+          await updateDoc(docRef, {
+            users: arrayRemove(auth.currentUser.uid)
+          });
+
+        } catch (err) {
+          console.error(err);
+        }
       }
-
-      
-    // try {
-    //   await updateDoc(doc(db, "rooms", room), {
-    //     users: arrayRemove(auth.currentUser.uid)
-    //   });
-    // } catch (err) {
-    //   console.error(err);
-    // }
+    } else {
+      console.log("No such document!");
+    }
   }
 
-  const handleFileInput = (e) => {
-    setFile(e.target.files[0])
-    setFileName(e.target.files[0].name)
-  }
-
+  //* Get files from firebase storage *//
   const getFiles = () => {
     const storage = getStorage();
 
@@ -240,17 +132,12 @@ export default function Chatroom() {
         });
         res.items.forEach((itemRef) => {
             // All the items under listRef.
-          console.log("item", itemRef)
-           // const storage = getStorage();
            const storageFilePath = room + "/" +itemRef.name
-           console.log("asdASDASDASDA", storageFilePath)
            const starsRef = ref(storage, storageFilePath);
             
            // Get the download URL
            getDownloadURL(starsRef)
              .then((url) => {
-               // Insert url into an <img> tag to "download"
-               console.log("SUIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII", url)
                // Get metadata properties
                 getMetadata(starsRef)
                 .then((metadata) => {
@@ -259,31 +146,22 @@ export default function Chatroom() {
 
                 })
                 .catch((error) => {
-                  // Uh-oh, an error occurred!
+                  console.error(error)
                 });
                 
              })
              .catch((error) => {
               console.error(error)
              });
-
-            
-          // const pathReference = ref(storage, "test/cm7v4jwetbt21.png");
-          // const pathReference = ref(storage, 'gs://bucket/test/cm7v4jwetbt21.png');
-          // const pathReference = ref(storage, 'https://firebasestorage.googleapis.com/b/bucket/o/test%20cm7v4jwetbt21.png');
-          // console.log("alllå",pathReference)
-        
-
         });
       }).catch((error) => {
-        // Uh-oh, an error occurred!<
+        console.error(error)
       });
-
 
       setImgMessages(arrImgMessages)
   }
-
-  const test321 = async (url) => {
+  //* Adds input file to database *//
+  const addImgToDB = async (url) => {
     const { uid, photoURL } = auth.currentUser;
 
     try {
@@ -300,10 +178,10 @@ export default function Chatroom() {
    }
   }
 
+  //* Uploads file to firebase storage *//
   const upLoadFile = () => {
     const storage = getStorage();
     const storageRef = ref(storage, room+"/"+fileName);
-    console.log("ASDASDASKDASPDKN",storageRef, storage)
     // Create file metadata including the content type
     /** @type {any} */
     const metadata = {
@@ -334,127 +212,160 @@ export default function Chatroom() {
         }
       }, 
       (error) => {
-        // A full list of error codes is available at
-        // https://firebase.google.com/docs/storage/web/handle-errors
-        // eslint-disable-next-line default-case
-        switch (error.code) {
-          case 'storage/unauthorized':
-            // User doesn't have permission to access the object
-            break;
-          case 'storage/canceled':
-            // User canceled the upload
-            break;
-
-          // ...
-
-          case 'storage/unknown':
-            // Unknown error occurred, inspect error.serverResponse
-            break;
-        }
+        console.error(error)        
       }, 
       () => {
         // Upload completed successfully, now we can get the download URL
-        console.log("ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ", uploadTask.snapshot.ref)
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-          console.log('File available at', downloadURL);
-          test321(downloadURL)
+          addImgToDB(downloadURL)
         });
       }
     );
   };
 
+  //* All handles */
+
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
+  const handleAddFriend = (e) => {
+    e.preventDefault();
+
+    handleOpen();
+  }
+
+  const handleConfirm = async (e) => {
+    e.preventDefault();
+    
+    fetchUsernameUid()
+  }
+
+  const addUserToRoom = async () => {
+    try {
+      await updateDoc(doc(db, "rooms", room), {
+        users: arrayUnion(usernameId)
+      });
+
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  const handleFileInput = (e) => {
+    setFile(e.target.files[0])
+    setFileName(e.target.files[0].name)
+  }
+
+  const handleClick = () => {
+    setShow(!show);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const { uid, photoURL } = auth.currentUser;
+
+    if(!message && fileName) {
+      upLoadFile()
+      setFile();
+      setFileName("");
+      return;
+    }
+
+    try {
+       await addDoc(collection(db, "rooms", room, "messages"), {
+        text: message,
+        createdAt: serverTimestamp(),
+        uid,
+        photoURL,
+        type: "text"
+      });
+
+    } catch (err) {
+      console.error(err);
+    }
+
+    setMessage('');
+    dummy.current.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  //* Calls "addUserToRoom" when usernameId gets updated *//
   const didMountRef = useRef(false);
   useEffect(() => {
 
     if(didMountRef.current) {
-      temp()
+      addUserToRoom()
     }
-    console.log("1", didMountRef)
     didMountRef.current = true;
-    console.log("2", didMountRef)
-    //
-
     
   }, [usernameId]);
 
+  //* On first render it get all files from firebase storage *//
   useEffect(() => {
     getFiles()
   }, [])
 
-
-
-  // useEffect(() => {
-  //   if(bool) {
-  //     console.log("useEffect")
-  //     // fetchUsernameUid()
-  //     temp()
-  //   }
-    
-    
-  // }, [bool]);
-
-  //TODO SÄTT MESSAGE INPUT LÄNGST NER I HEMSIDAN  
   return(
     <div className="chatroom-container">
       <form id="add-friend" onSubmit={handleConfirm}>
-        <InputModal id="add-friend" title="Add friend" sendDataToParentComp={sendDataToParentComp} open={open} handleClose={handleClose} />
+        <InputModal id="add-friend" title="Add friend" sendDataToParentComp={sendDataToParentComp} open={open} handleClose={handleClose} extraText="Name is case sensitive" />
         
       </form>
 
-      
-
-      <Button onClick={()=> {console.log(imgMessages)}} >AAAAAAAA</Button>
       <div className="users-in-room">
-
         <ActiveUsers />
-        <IconButton onClick={(e)=> leaveRoom(e)} >
-          <AddCircleOutlineIcon />
-        </IconButton>
-
-        <Paper
-          component="form"
-          onSubmit={handleAddFriend}
-          sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: 100, backgroundColor: "#111", float: "right" }}
-        >
-          <IconButton type="submit" sx={{ p: '10px' }} aria-label="search" color="white">
-           <AddCircleOutlineIcon />
-          </IconButton>
+        <Paper sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: "auto", backgroundColor: "#111", float: "right", flexDirection: "column" }} >
+          <div>
+            <IconButton onClick={handleClick} aria-label="search" color="error" >
+              <ExitToAppIcon />  {show ? "Leave room?" : null}
+            </IconButton>
+              {show ? (
+                <Portal container={container.current}>
+                  <Button onClick={()=> {handleClick(); leaveRoom()}} color="success" variant="contained" sx={{marginRight: 1}} >Confirm</Button>
+                  <Button onClick={handleClick} color="error" variant="contained" >Close</Button>
+                </Portal>
+              ) : null}
+            <Box ref={container} />
+          </div>
         </Paper>
       </div>
-      <h1 >Tees</h1>
-      <Message imgMessages={imgMessages} />
-      {/* <form onSubmit={handleSubmit}> */}
+
+      <Message imgMessages={imgMessages} dummyRef={dummy} />
+
       <div style={{position: "fixed", bottom: 0, left: "50%", marginLeft: "-100px"}}>
+        <Paper
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: 400, backgroundColor: "#111" }}
+        >
+          <InputBase
+            sx={{ ml: 1, flex: 1 }}
+            className="message-input"
+            placeholder="Search Google Maps"
+            inputProps={{ 'aria-label': 'search google maps' }}
+            value={message}
+            onChange={e => setMessage(e.target.value)}
+          />
+          <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+          <IconButton type="submit" sx={{ p: '10px' }} aria-label="search" color="white">
+           <SearchIcon />
+          </IconButton>
+          <label htmlFor="icon-button-file">
+            <Input accept="image/*" id="icon-button-file" type="file" onChange={(e)=> handleFileInput(e)} />
+            <Button size="large" startIcon={<PhotoCamera />} color="primary" aria-label="upload picture" component="span" >{fileName}</Button>
+          </label>
+        </Paper>
+      </div>
+
       <Paper
         component="form"
-        onSubmit={handleSubmit}
-        sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: 400, backgroundColor: "#111" }}
-        >
-        <InputBase
-          sx={{ ml: 1, flex: 1 }}
-          className="message-input"
-          placeholder="Search Google Maps"
-          inputProps={{ 'aria-label': 'search google maps' }}
-          value={message}
-          onChange={e => setMessage(e.target.value)}
-        />
-        <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-        <IconButton type="submit" sx={{ p: '10px' }} aria-label="search" color="white">
-         <SearchIcon />
+        onSubmit={handleAddFriend}
+        sx={{ p: '2px 4px', position: "fixed" , display: 'flex', alignItems: 'center', width: "auto", backgroundColor: "#111", float: "right", flexDirection: "column", marginLeft: "30px", bottom: "0px", right: "0px", margin: "10px" }}
+      >
+        <IconButton type="submit"  aria-label="search" color="white" >
+          <AddCircleOutlineIcon  />
         </IconButton>
-
-        <label htmlFor="icon-button-file">
-          <Input accept="image/*" id="icon-button-file" type="file" onChange={(e)=> handleFileInput(e)} />
-          {/* <IconButton color="primary" aria-label="upload picture" component="span">
-            <PhotoCamera />
-            {fileName}
-          </IconButton> */}
-          <Button size="large" startIcon={<PhotoCamera />} color="primary" aria-label="upload picture" component="span" >{fileName}</Button>
-        </label>
-
       </Paper>
-      </div>
-      {/* </form> */}
     </div>
   );
 }

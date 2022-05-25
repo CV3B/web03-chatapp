@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate  } from "react-router-dom";
-import { auth, signInWithEmailAndPassword } from "../Firebase/Firebase";
+import { auth, signInWithEmailAndPassword, signInWithGoogle } from "../Firebase/Firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { TextField, Button, Typography, Paper } from "@mui/material";
-
 
 import "./Login.css";
 
@@ -61,9 +60,19 @@ function Login() {
         >
           Login
         </Button>
-        <div className="login-item">
-          <Typography>
-            <Link to="/reset" style={{ textDecoration: 'none', color: "inherit" }} >Forgot Password</Link>
+        <Button
+          className="login-item"
+          onClick={() => signInWithGoogle()}
+          variant="contained"
+        >
+          Login with Google
+        </Button>
+        <div className="login-item" >
+          <Typography sx={{marginBottom: "20px"}} >
+            <Link to="/reset" style={{ textDecoration: 'underline', color: "#666666"}} >Forgot Password</Link>
+          </Typography>
+          <Typography >
+            <Link to="/register" style={{ textDecoration: 'underline', color: "#666666", }} >Want to register?</Link>
           </Typography>
         </div>
       </div>

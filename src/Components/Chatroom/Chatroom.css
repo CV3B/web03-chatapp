@@ -1,6 +1,7 @@
 .chatroom-container {
   margin-left: 200px;
-  height: 100vh;
+  height: 100%;
+ margin-bottom: 100px; 
 }
 
 .users-in-room {

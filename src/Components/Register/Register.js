@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 //* Firebase imports *//
-import { auth, registerWithEmailAndPassword } from "../Firebase/Firebase";
+import { auth, registerWithEmailAndPassword, signInWithGoogle } from "../Firebase/Firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
 // import AlertBar from "../Firebase/Firebase";
 
@@ -66,8 +66,15 @@ function Register() {
         <Button variant="contained" className="register-item" onClick={register} >
           Register
         </Button>
+        <Button
+          className="login-item"
+          onClick={() => signInWithGoogle()}
+          variant="contained"
+        >
+          Login with Google
+        </Button>
         <Typography className="register-item" >
-          <Link to="/" style={{ textDecoration: 'none', color: "inherit" }}>Already have an account? Login now.</Link> 
+          <Link to="/login" style={{ textDecoration: 'underline', color: "#666666"}}>Already have an account? Login now.</Link> 
         </Typography>
       </div>
       {/* <AlertBar message={"Please enter name"} open={alertOpen} setOpen={setAlertOpen} /> */}

@@ -1,21 +1,18 @@
-import logo from './logo.svg';
-import './App.css';
-import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
-import {ThemeProvider, createTheme} from "@mui/material/styles";
-
-import Button from "@mui/material/Button";
-
+//* Component imports *//
 import Chatrooms from "./Components/Chatrooms/Chatrooms";
 import Chatroom from "./Components/Chatroom/Chatroom";
-import { Chat } from '@mui/icons-material';
 import Reset from "./Components/Reset/Reset";
 import Home from "./Components/Home/Home";
 import Login from "./Components/Login/Login";
 import Register from "./Components/Register/Register";
 import UserSettings from "./Components/UserSettings/UserSettings";
 
-import "./Components/Chatrooms/Chatrooms.css";
+//* Other imports *//
+import './App.css';
+import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
+import {ThemeProvider, createTheme} from "@mui/material/styles";
 
+//* Färg temat för hemsidan *//
 const theme = createTheme({
   palette: {
     primary: {
@@ -37,19 +34,21 @@ const theme = createTheme({
   }
 });
 
-
 /* 
-  TODO:
+  TODO små sakaer kvar:
 
-    * ////Visar användare i rummet - online status
+    * ////Visar användare i rummet - online status - KOMMER VÄRKLIGEN INTE HINNA
     * ////Ta bort meddelande - Ta bort användare från ett rum - Lämna rum
-    * Profil inställningar
+    * ////Profil inställningar -- KOMMER NOG INTE BLI KLAR MED ATT UPPDATARE PB
     * ////Meddela bilder 
-    * uid ska bli roomOwner - TITTA NOGA
-    * name ska bli username
-    * CSS
-    * Städa kod
-    * KLAR
+    * ////CSS 
+    * ////Städa kod
+    * ////Visa en alert när anvädaren inte har tillgång till en sida
+    * Smooth scrolling - Annan scrollbar
+    * ////Knapp till /chat - 
+    * ////Inte vara mer än 10 i grupp, samt andra regeler för att skriva i firebase 
+    * ////import colorstring
+    * KLAR?
 
 */
 function App() {
@@ -65,24 +64,12 @@ function App() {
               <Route exact path="/reset" element={<Reset />} />
               <Route exact path="/login" element={<Login />} />
               <Route exact path="/register" element={<Register />} />
-              <Route exact path="/userSettings" element={<UserSettings />} />
-
-              {/* <Route exact path="/test" >
-                <Chatrooms />
-              </Route> */}
-
+              <Route exact path="/settings" element={<UserSettings />} />
             </Routes>
         </Router>
       </ThemeProvider>
     </div>
   );
 }
-
-// function Test(){
-//   return(
-//     <Chatrooms />
-//     <Outlet />
-//   )
-// }
 
 export default App;

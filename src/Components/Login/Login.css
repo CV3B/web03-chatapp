@@ -33,15 +33,7 @@
 
 } 
 
-.login-item:nth-child(5) {
-  /* width: 48%; */
-  /* text-decoration: underline; */
-  text-decoration: none;
-  /* text-decoration: none; */
-  text-decoration: underline;
-  color: #666666;
-  text-align: center;
-}
+
 
 .login-item:nth-child(4) {
   /* width: 48%; */

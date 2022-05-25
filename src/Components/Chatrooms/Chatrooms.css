@@ -44,7 +44,7 @@
   color: #818181;
   display: block;
   transition: 0.3s;
-  float: left;
+  /* float: left; */
 }
 
 .sidenav a:hover {

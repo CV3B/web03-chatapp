@@ -1,190 +1,155 @@
 import React, { useEffect, useState, useRef } from "react";
 
-import InputBase from '@mui/material/InputBase';
-import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
-import SearchIcon from '@mui/icons-material/Search';
-import DirectionsIcon from '@mui/icons-material/Directions';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+
 //* MUI imports *//
 import { Paper, Button, Typography, Divider } from "@mui/material";
-
-import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import SettingsIcon from '@mui/icons-material/Settings';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import LogoutIcon from '@mui/icons-material/Logout';
-import { auth, signInWithEmailAndPassword, db } from "../Firebase/Firebase";
-import { useAuthState } from "react-firebase-hooks/auth";
-
-import { getFirestore, collection, orderBy, limit, where, doc, quer, deleteDoc, query, getDocs, getDoc  } from 'firebase/firestore';
-import { getStorage, ref, getMetadata } from "firebase/storage";
+import CircularProgress from '@mui/material/CircularProgress';
+import Avatar from '@mui/material/Avatar';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Fade from '@mui/material/Fade';
+import IconButton from '@mui/material/IconButton';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 
+//* Firebase imports *//
+import { auth, signInWithEmailAndPassword, db } from "../Firebase/Firebase";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { getFirestore, collection, orderBy, limit, where, doc, quer, deleteDoc, query, getDocs, getDoc  } from 'firebase/firestore';
+import { getStorage, ref, getMetadata } from "firebase/storage";
 import { useCollection } from 'react-firebase-hooks/firestore';
 
-
+//* Other imports *//
 import { BrowserRouter as Router, Link, useParams, Route } from "react-router-dom";
-
 import "./Message.css";
-import { create } from "@mui/material/styles/createTransitions";
-import { Chat } from "@mui/icons-material";
+import { stringToColour } from "../util/stringToColour/stringToColour";
+import { useSnackbar } from 'notistack';
 
 export default function Message(props) {
-  // const [value, loading, error] = useCollection(
-  //   collection(db, orderBy("createdAt"), limit(25)),
-  //   {
-  //     idField: 'id',
-  //   }
-  // );
-  
-  
   let { room } = useParams();
-  const [value, loading, error] = useCollection(
+
+  const [messages, messagesLoading, messagesError] = useCollection(
     query(collection(db, "rooms", room, "messages"), orderBy("createdAt")),
     {
       idField: 'id',
     }
   );
 
-  
 
+  // const dummy = useRef();
+  // dummy.current.scrollIntoView({ behavior: 'smooth' });
+  const { enqueueSnackbar } = useSnackbar();
 
- 
-  // const fetchAvailableTimesData = async () => {
-  //   try {
-  //     const q = query(collection(db, "available-dates"), where("date", "==", props.date));
-
-  //     const querySnapshot = await getDocs(q);
-  //     querySnapshot.forEach((pDoc) => {
-  //       setAvailableTimes(pDoc.data()["available-times"])
-
-  //     });
-
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
-
-  const dummy = useRef();
-  // console.log("haha error", error)
   return(
     <div>
-      {error && <strong>Error: {JSON.stringify(error)}</strong>}
-        {loading && <span>Collection: Loading...</span>}
-        {value && (
+      {messagesError && <Typography variant="h3" color="error">You don't have permission to access this room!</Typography>}
+        {messagesLoading && <CircularProgress />}
+        {messages && (
           <span>
-            Collection:{' '}
-            {value.docs.map((doc) => (
+            {messages.docs.map((doc) => (
               <React.Fragment key={doc.id}>
-              <button onClick={()=> console.log(doc.data().createdAt)} >AAAA</button>
-
-                {/* {JSON.stringify(doc.data())},{' '} */}
                 <ChatMessage key={doc.data().id} message={doc.data()} imgMessages={props.imgMessages} />
               </React.Fragment>
             ))}
           </span>
         )}
-      {/* {messages && messages.map(msg => <ChatMessage key={msg.id} message={msg} />)} */}
-      <span ref={dummy}></span>
+      <span ref={props.dummyRef}></span>
     </div>
   );
 }
 
 function ChatMessage(props) {
+  const [user, loading, error] = useAuthState(auth);
+  const [username, setUsername] = useState("");
+  const [senderUsername, setSenderUsername] = useState("");
+
   const { text, uid, photoURL, createdAt, type } = props.message;
-  // const [anchorEl, setAnchorEl] = React.useState(null);
-  // const open = Boolean(anchorEl);
-  // let { room } = useParams();
-
   const messageClass = uid === auth.currentUser.uid ? 'sent' : 'received';
-  // const handleClick = (event) => {
-  //   setAnchorEl(event.currentTarget);
-  // };
-  // const handleClose = () => {
-  //   setAnchorEl(null);
-  // };
 
-  
- 
-  // const deleteMessage = async () => {
-  //   try {
-  //     await deleteDoc(query(collection(db, "rooms", room, "messages"), where("text", "==", text)));
-  //   } catch(err) {
-  //     console.error(err)
-  //   }
-  // }
+  //* Gets user data *//
+  const fetchCurrentUserData = async () => {
+    try {
+      const q = query(collection(db, "users"), where("uid", "==", user?.uid));
 
-  // const handleDeleteMessage = (e) => {
-  //   handleClose();
-  //   deleteMessage()
-  //   console.log(uid)
-  // }
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((pDoc) => {
+        setUsername(pDoc.data().name)
+
+      });
+
+    } catch (err) {
+      console.error(err);
+
+    }
+  };
+
+  //* Gets sender message user data *//
+  const getSenderUserData = async () => {
+    try {
+      const q = query(collection(db, "users"), where("uid", "==", uid));
+
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((pDoc) => {
+        // return(pDoc.data().name)
+        setSenderUsername(pDoc.data().name)
+      });
+
+    } catch (err) {
+      console.error(err);
+
+    }
+  };
+  getSenderUserData()
+
+  //* On render it calls "fetchCurrentUserData" *//
+  useEffect(() => {
+    fetchCurrentUserData()
+  }, [])
 
   return(
-        <div id="message-container" className={`message ${messageClass}`}>
-         <img className="profile-picture" src={photoURL || 'https://api.adorable.io/avatars/23/abott@adorable.png'} />
-         {type === "text" &&
-          <>
-            <p>{text}</p>
-            <DeleteMessageMenu messageUid={uid} textMessage={text} />
-            <p>{JSON.stringify(createdAt)}</p>
-          </>
-         }
-         {type === "img" &&
-          <>
-            <img src={text} />
-            <DeleteMessageMenu messageUid={uid} />
-            <p>{JSON.stringify(createdAt)}</p>
-          </>
-         }
-         {type === null && <Typography>Invalid Type</Typography> }
-       </div>
-  )
+    <Paper elevation={4} sx={{ width: "100%", marginBottom: "10px"}} >
 
-  // if(type === "text"){
-  //   return (<>
-  //     <div id="message-container" className={`message ${messageClass}`}>
-  //       <img src={photoURL || 'https://api.adorable.io/avatars/23/abott@adorable.png'} />
-  //       <p>{text}</p>
-  //       {JSON.stringify(createdAt)}
-  //     </div>
-  //   </>)
-  // } else if (type === "img"){
-  //   return(
-  //     <>aa</>
-  //   )
-  // } else return(<Typography>Invalid Type</Typography>)
-  
+    <div id="message-container" className={`message ${messageClass}`}>
+      {/* <img className="profile-picture" src={photoURL || 'https://api.adorable.io/avatars/23/abott@adorable.png'} /> */}
+      <Paper elevation={4} sx={{ margin: "10px", padding: "10px" }} >
+        <Avatar className="profile-picture" src={photoURL} sx={{ bgcolor: stringToColour(username), width: 46, height: 46 }} >{username[0]}</Avatar>
+        <Typography component="div" variant="h6"  >{senderUsername}</Typography>
+      </Paper>
+       {type === "text" &&
+        <>
+          <DeleteMessageMenu messageUid={uid} textMessage={text} />
+          <p className="text-message">{text}</p>
+          {/* <p>{JSON.stringify(createdAt)}</p> */}
+        </>
+       }
+       {type === "img" &&
+        <>
+          <DeleteMessageMenu messageUid={uid} />
+          <img className="img-message" src={text} />
+          {/* <p>{JSON.stringify(createdAt)}</p> */}
+        </>
+       }
+       {type === null && <Typography>Invalid Type</Typography> }
+    </div>
+    </Paper>
+
+  )
 }
 
-// let messages = [{text: "loool", uid: 123}, {text: "123123", uid: 123}, {text: "asdasdasd", uid: 123}, {text: "aaaaa", uid: 123}, {text: "ööööööö", uid: 123},]
-//! GE ALLA MEDELANDEN UNIKA ID SÅ ATT INTE DET FIINS T.EX TVÅ "AAA" "AAA", VILKET DÅ TAR BORT BÅDA
 function DeleteMessageMenu(props) {
   const [user, loading, error] = useAuthState(auth);
   const [test, setTest] = useState("");
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+
   let { room } = useParams();
 
   const open = Boolean(anchorEl);
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-    getCurrentRoomOwner()
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
 
+  //* Gets room owern *//
   async function getCurrentRoomOwner() {
-
     try {
       const q = query(collection(db, "rooms", room, "messages"), where("text", "==", props.textMessage));
       const querySnapshot = await getDocs(q);
 
-      // const docRef = doc(db, "rooms", room);
-      // const docSnap = await getDoc(docRef);
       querySnapshot.forEach((pDoc) => {
         if (pDoc.exists()) {
           console.log("2", pDoc.id)
@@ -194,14 +159,6 @@ function DeleteMessageMenu(props) {
         }
       });
 
-      // if (docSnap.exists()) {
-      //   // console.log("Document data:", docSnap.data());
-      //   setTest(docSnap.data().uid)
-      // } else {
-      //   // doc.data() will be undefined in this case
-      //   console.log("No such document!");
-      // }
-
     } catch (err) {
       console.error(err);
 
@@ -209,11 +166,17 @@ function DeleteMessageMenu(props) {
     return("test")
   }
 
-  // useEffect(() => {
-  //   getCurrentRoomOwner();
-  // }, [])
+  //* All handles *//
 
-  //! GÖR DETTA I ACTIVEUSERS
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+    getCurrentRoomOwner()
+  };
+  
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
   const handleDeleteMessage = async (e) => {
     getCurrentRoomOwner()
     
@@ -250,8 +213,7 @@ function DeleteMessageMenu(props) {
             'aria-labelledby': 'basic-button',
           }}
         >
-          <MenuItem onClick={(e)=> handleDeleteMessage(e)}>Delete</MenuItem>
-          <Button onClick={()=> getCurrentRoomOwner()} >DBUG</Button>
+          <MenuItem onClick={(e)=> handleDeleteMessage(e)}>Delete message</MenuItem>
         </Menu>
       </div>
     );

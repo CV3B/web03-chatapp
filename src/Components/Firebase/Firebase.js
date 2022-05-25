@@ -2,24 +2,25 @@ import { forwardRef } from 'react';
 
 //* Firebase imports *//
 import { initializeApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword as signInEmailPassword, sendPasswordResetEmail as sendResetEmail, signOut  } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword as signInEmailPassword, sendPasswordResetEmail as sendResetEmail, signOut, signInWithPopup, GoogleAuthProvider  } from "firebase/auth";
 import { collection, addDoc  } from "firebase/firestore"; 
 import { getFirestore } from 'firebase/firestore'
+import { async } from '@firebase/util';
 
 //* MUI imports *//
 // import Stack from '@mui/material/Stack';
 // import Snackbar from '@mui/material/Snackbar';
 // import MuiAlert from '@mui/material/Alert';
 
-// GÖM DETTA
+
 const firebaseConfig = {
-  apiKey: "AIzaSyB7Hjw6812gqoOCPk5AM0X14yEMZXjjz8U",
-  authDomain: "chatapp-d3568.firebaseapp.com",
-  projectId: "chatapp-d3568",
-  storageBucket: "chatapp-d3568.appspot.com",
-  messagingSenderId: "633284344535",
-  appId: "1:633284344535:web:06538d787bf441445fce92",
-  measurementId: "G-2JEHTT41VR"
+  apiKey: process.env.REACT_APP_API_KEY,
+  authDomain: process.env.REACT_APP_AUTHDOMAIN,
+  projectId: process.env.REACT_APP_PROJECTID,
+  storageBucket: process.env.REACT_APP_STORAGEBUCKET,
+  messagingSenderId: process.env.REACT_APP_MESSAGINGSENDERID,
+  appId: process.env.REACT_APP_APPID,
+  measurementId: process.env.REACT_APP_MEASURMENTID
 };
 
 // Initialize Firebase
@@ -35,6 +36,39 @@ const signInWithEmailAndPassword = async (email, password) => {
     // alert(err.message);
   }
 };
+
+const signInWithGoogle = async () => {
+  const provider = new GoogleAuthProvider();
+  signInWithPopup(auth, provider)
+  .then((result) => {
+    // This gives you a Google Access Token. You can use it to access the Google API.
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    const token = credential.accessToken;
+    // The signed-in user info.
+    const user = result.user;
+    
+    addDoc(collection(db, "users"), {
+      uid: user.uid,
+      name: user.displayName,
+      email: user.email,
+    });
+    
+      
+    
+    // ...
+  }).catch((error) => {
+    // Handle Errors here.
+    const errorCode = error.code;
+    const errorMessage = error.message;
+    // The email of the user's account used.
+    const email = error.customData.email;
+    // The AuthCredential type that was used.
+    const credential = GoogleAuthProvider.credentialFromError(error);
+    // ...
+  });
+}
+
+
 
 const registerWithEmailAndPassword = async (name, email, password) => {
   try {
@@ -123,4 +157,5 @@ export {
   registerWithEmailAndPassword,
   sendPasswordResetEmail,
   logout,
+  signInWithGoogle
 };
