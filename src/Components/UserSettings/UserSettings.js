@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 //* Firebase imports *//
 import { auth, signInWithEmailAndPassword } from "../Firebase/Firebase";
@@ -57,6 +57,8 @@ function UserSettings() {
       const q = query(collection(db, "users"), where("name", "==", username));
       const querySnapshot = await getDocs(q);
 
+      if(querySnapshot.empty) setIsUsernameAvailable(true);
+
       querySnapshot.forEach((pDoc) => {
         if (pDoc.exists()) {
           console.log("false")
@@ -71,6 +73,7 @@ function UserSettings() {
         }
         
       });
+
 
     } catch (err) {
       console.error(err);
@@ -87,7 +90,7 @@ function UserSettings() {
     setTimeout(() => {
       
     }, 500);
-
+    console.log("ASDASDASDASD", isUsernameAvailable)
     if(isUsernameAvailable) {
       try {
         const userRef = doc(db, "users", usernameDocId);
@@ -110,11 +113,18 @@ function UserSettings() {
   const navigate  = useNavigate ();
 
   //* Calls "fetchCurrentUserData" on render and checks if user is login or not*//
+  const didMountRef = useRef(true);
   useEffect(() => {
     if(loading) return;
     if(!user) return navigate("/login")
-    fetchCurrentUserData()
-  }, [user, loading]);
+    if(didMountRef.current){
+      fetchCurrentUserData()
+
+    }
+    didMountRef.current = false;
+
+    setUsernameAvailable()
+  }, [user, loading, username]);
 
   if(!loading){
     return (

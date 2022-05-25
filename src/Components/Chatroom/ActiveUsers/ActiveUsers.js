@@ -17,7 +17,7 @@ import { makeStyles } from '@mui/styles';
 
 //* Other imports *//
 import { stringToColour } from "../../util/stringToColour/stringToColour";
-import { BrowserRouter as Router, Link, useParams, Route } from "react-router-dom";
+import { BrowserRouter as Router, Link, useParams, Route, useNavigate } from "react-router-dom";
 import { useDocument } from 'react-firebase-hooks/firestore';
 
 import "./ActiveUsers.css";
@@ -55,6 +55,7 @@ export default function Chatroom() {
   const [user, loading, error] = useAuthState(auth);
   const [selectedUserBadgeId, setSelectedUserBadgeId] = useState("");
   const [permittedUsernames, setPermittedUsernames] = useState([]);
+  const [username, setUsername] = useState("");
 
   let { room } = useParams();
   const classes = useStyles();
@@ -68,6 +69,23 @@ export default function Chatroom() {
 
 
   const open = Boolean(anchorEl);
+
+  //* Gets user data *//
+  const fetchCurrentUserData = async () => {
+    try {
+      const q = query(collection(db, "users"), where("uid", "==", user?.uid));
+
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((pDoc) => {
+        setUsername(pDoc.data().name)
+
+      });
+
+    } catch (err) {
+      console.error(err);
+
+    }
+  };
 
   //* Gets usernames that are permited to view the room *//
   const fetchUsername = () => {
@@ -84,6 +102,7 @@ export default function Chatroom() {
   }
  
   //* Kick user from room if user is owner of room *//
+  //! När man kickar någon så kommer det massa errors för användaren som kickas. LÖSNING? if(pDoc.data().uid === user?.uid). Har inte tid att fixa.
   const kickUserFromRoom = async (username) => {
     try {
       const q = query(collection(db, "users"), where("name", "==", username));
@@ -97,10 +116,12 @@ export default function Chatroom() {
           console.log("2", pDoc.data().uid)
           // setUsernameId(pDoc.data().uid)
           TEMP = pDoc.data().uid
+
         } else {
           console.log("No such document!");
         }
       });
+
       
       await updateDoc(docRef, {
         users: arrayRemove(TEMP)
@@ -122,27 +143,30 @@ export default function Chatroom() {
   };
 
   //* Calls "fetchUsername" when permittedUsersId gets updated *//
+  const navigate = useNavigate();
   const didMountRef = useRef(false);
   useEffect(() => {
-    
+    // if(!user) return navigate("/chat")
+
     if(didMountRef.current && !permittedUsersIdLoading) {
       fetchUsername();
     }
-
     didMountRef.current = true;
+    
+    fetchCurrentUserData()
   }, [permittedUsersId]);
  
   if(!loading && !permittedUsersIdLoading) {
     return(
       <Paper elevation={12} sx={{width: "auto", backgroundColor: "#111", display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "row", float: "left" }}>
         <AvatarGroup max={10} sx={{margin: "10px"}}>
-          {permittedUsernames.map((uersname) => {
+          {permittedUsernames.map((uersname, i) => {
             return(
               <div key={uersname} >
               <StyledBadge
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
               >
-                <IconButton onClick={handleClick} id={uersname} ><Avatar alt={uersname} sx={{ bgcolor: stringToColour(uersname), width: 46, height: 46 }} src="/static/images/avatar/1.jpg" /></IconButton>
+                <IconButton onClick={handleClick} id={uersname} ><Avatar alt={uersname} sx={{ bgcolor: stringToColour(uersname), width: 46, height: 46 }} src={user?.uid === permittedUsersId[i] ? user?.photoURL : null} >{uersname[0]}</Avatar></IconButton>
               </StyledBadge>
                 {user.uid === permittedUsersId.data().uid &&
                   <Menu

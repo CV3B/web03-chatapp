@@ -100,15 +100,16 @@ export default function Chatrooms() {
   useEffect(() => {
    if(user) {
     fetchAvalibleRooms()
+    fetchCurrentUserData()
+
   }
-  fetchCurrentUserData()
     
   }, [user]);
 
   return(
     <div className="first-dashboard-container">
       <div id="mySidenav" className="sidenav">
-      <Button size="large" color="white" component={Link} to="/settings" >{username}</Button>
+      <Button size="large" color="white" component={Link} to="/settings" sx={{ textTransform: "none" }} >{username}</Button>
         <Divider variant="middle" color="white" />
         <Button startIcon={<FormatListBulletedIcon />} color="white" onClick={handleOpen} >Create room</Button>
         <form id="create-room" onSubmit={handleConfirm}>

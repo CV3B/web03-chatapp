@@ -7,7 +7,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 
 //* Other imports *//
 import { Paper, Button, Typography, TextField } from "@mui/material";
-
+import { useSnackbar } from 'notistack';
 import { Link, useNavigate } from "react-router-dom";
 
 import "./Register.css";
@@ -15,15 +15,16 @@ import "./Register.css";
 function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [user, loading, error] = useAuthState(auth);
   const [alertOpen, setAlertOpen] = useState(false);
 
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
 
   const register = () => {
-    if(!name) setAlertOpen(true);
-    registerWithEmailAndPassword(name, email, password);
+    if(!username) enqueueSnackbar('You have to fill in a name!', { variant: "error" });
+    registerWithEmailAndPassword(username, email, password);
 
   };
 
@@ -40,9 +41,9 @@ function Register() {
         <TextField
           type="text"
           className="register-item"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Full Name"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Username"
           variant="standard"
         />
         <TextField
