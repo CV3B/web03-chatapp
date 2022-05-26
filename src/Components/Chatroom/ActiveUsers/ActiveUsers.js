@@ -158,7 +158,7 @@ export default function Chatroom() {
  
   if(!loading && !permittedUsersIdLoading) {
     return(
-      <Paper elevation={12} sx={{width: "auto", backgroundColor: "#111", display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "row", float: "left" }}>
+      <Paper elevation={12} sx={{width: "auto", height: "100%" , backgroundColor: "#111", display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "row", float: "left" }}>
         <AvatarGroup max={10} sx={{margin: "10px"}}>
           {permittedUsernames.map((uersname, i) => {
             return(

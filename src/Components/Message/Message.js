@@ -112,7 +112,7 @@ function ChatMessage(props) {
       {/* <img className="profile-picture" src={photoURL || 'https://api.adorable.io/avatars/23/abott@adorable.png'} /> */}
       <Paper elevation={4} sx={{ margin: "10px", padding: "10px" }} >
         <Avatar className="profile-picture" src={photoURL} sx={{ bgcolor: stringToColour(username), width: 46, height: 46 }} >{username[0]}</Avatar>
-        <Typography component="div" variant="h6"  >{senderUsername}</Typography>
+        <Typography component="div" variant="h6" className="sender-username" >{senderUsername}</Typography>
       </Paper>
        {type === "text" &&
         <>

@@ -16,3 +16,11 @@
   color: white;
 
 }
+
+@media screen and (max-width: 750px) {
+  .chatroom-container {
+    margin-left: 0;
+    /* height: 0; */
+    margin-bottom: 100px; 
+  }
+}

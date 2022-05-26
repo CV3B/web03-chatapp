@@ -83,6 +83,28 @@
   }
 }
 
-@media only screen and (max-width: 950px){
+@media only screen and (max-width: 750px){
+  .received {
+    margin-left: 0px;
+  }
+
+  .sent {
+    margin-right: 0px;
+  }
   
+  .received p {
+    margin-left: 0px;
+  }
+
+  .img-message {
+    max-width: 170px;
+    max-height: 170px;
+    object-fit: cover;
+    margin-right: 12px;
+    margin-bottom: 20px;
+  }
+  .sender-username {
+    overflow-wrap: break-word;
+    max-width: 70px;
+  }
 }

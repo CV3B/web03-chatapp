@@ -2,11 +2,11 @@ import React, { useEffect, useState, useCallback, useRef } from "react";
 import { v4 as uuidv4 } from 'uuid';
 
 //* MUI imports *//
-import { Paper, Button, Typography, Divider } from "@mui/material";
+import { Paper, Button, Typography, Divider, IconButton } from "@mui/material";
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import CircularProgress from '@mui/material/CircularProgress';
-
-
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
+import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 
 //* Firebase imports *//
 import { collection, query, where, getDocs, addDoc, serverTimestamp, setDoc, doc, onSnapshot   } from "firebase/firestore";
@@ -96,6 +96,14 @@ export default function Chatrooms() {
     }
   }
 
+  const handleOpenSidenav = () => {
+    document.getElementsByClassName("sidenav")[0].style.display = "block";
+  }
+
+  const handleCloseSidenav = () => {
+    document.getElementsByClassName("sidenav")[0].style.display = "none";
+  }
+
   //* Kallar "fetchRooms" vid initial mount
   useEffect(() => {
    if(user) {
@@ -108,7 +116,17 @@ export default function Chatrooms() {
 
   return(
     <div className="first-dashboard-container">
+      {window.matchMedia("(max-width: 750px)").matches && 
+        <Button onClick={handleOpenSidenav} variant="contained" size="large" sx={{float: "left", margin: "10px",}} color="darkGrey" >
+          <KeyboardArrowRightIcon size="large" color="white" />
+        </Button>
+      }
       <div id="mySidenav" className="sidenav">
+      {window.matchMedia("(max-width: 750px)").matches && 
+        <Button onClick={handleCloseSidenav} variant="contained" size="large" color="darkGrey" >
+          <KeyboardArrowLeftIcon size="large" color="white" />
+        </Button>
+      }
       <Button size="large" color="white" component={Link} to="/settings" sx={{ textTransform: "none" }} >{username}</Button>
         <Divider variant="middle" color="white" />
         <Button startIcon={<FormatListBulletedIcon />} color="white" onClick={handleOpen} >Create room</Button>

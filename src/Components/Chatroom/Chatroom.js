@@ -15,7 +15,7 @@ import { Paper, Button, Typography, Divider } from "@mui/material";
 import Portal from '@mui/material/Portal';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { styled } from '@mui/material/styles';
-
+import SendIcon from '@mui/icons-material/Send';
 
 
 
@@ -305,6 +305,7 @@ export default function Chatroom() {
     getFiles()
   }, [])
 
+  if(true) {
   return(
     <div className="chatroom-container">
       <form id="add-friend" onSubmit={handleConfirm}>
@@ -332,23 +333,23 @@ export default function Chatroom() {
 
       <Message imgMessages={imgMessages} dummyRef={dummy} />
 
-      <div style={{position: "fixed", bottom: 0, left: "50%", marginLeft: "-100px"}}>
+      <div className="text-input" >
         <Paper
           component="form"
           onSubmit={handleSubmit}
-          sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: 400, backgroundColor: "#111" }}
+          sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: (window.matchMedia("(max-width: 750px)").matches ? 290 : 400) , backgroundColor: "#111" }}
         >
           <InputBase
             sx={{ ml: 1, flex: 1 }}
             className="message-input"
-            placeholder="Search Google Maps"
-            inputProps={{ 'aria-label': 'search google maps' }}
+            placeholder="Send message"
+            inputProps={{ 'aria-label': 'Send message' }}
             value={message}
             onChange={e => setMessage(e.target.value)}
           />
           <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
           <IconButton type="submit" sx={{ p: '10px' }} aria-label="search" color="white">
-           <SearchIcon />
+           <SendIcon />
           </IconButton>
           <label htmlFor="icon-button-file">
             <Input accept="image/*" id="icon-button-file" type="file" onChange={(e)=> handleFileInput(e)} />
@@ -368,4 +369,5 @@ export default function Chatroom() {
       </Paper>
     </div>
   );
+}
 }

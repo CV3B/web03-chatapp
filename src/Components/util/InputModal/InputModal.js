@@ -17,7 +17,7 @@ const style = {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 400,
+  width: (window.matchMedia("(max-width: 750px)").matches ? 200 : 400),
   bgcolor: 'background.paper',
   border: '2px #000',
   borderRadius: '7px',
