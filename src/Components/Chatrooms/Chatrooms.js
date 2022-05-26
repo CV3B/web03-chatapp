@@ -25,6 +25,24 @@ import "./Chatrooms.css";
 //TODO Gör samma i handleCreateRoom som i message, för att uppdatera UI:en i realtid LÖST
 //TODO user.uid är inte bestämd innan den kallas här, alltså user.uid == null. LÖST
 
+//* This function checks if user clicks outside the sidebar class, if true it sets display to none *//
+function useOutsideAlerter(ref) {
+  useEffect(() => {
+
+    function handleClickOutside(event) {
+      if (ref.current && !ref.current.contains(event.target) && document.getElementsByClassName("sidenav")[0].style.display === "block") {
+        document.getElementsByClassName("sidenav")[0].style.display = "none"
+      }
+    }
+    // Bind the event listener
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      // Unbind the event listener on clean up
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [ref]);
+}
+
 export default function Chatrooms() {
   const [roomName, setRoomName] = useState("");
   const [rooms, setRooms] = useState([]);
@@ -114,14 +132,17 @@ export default function Chatrooms() {
     
   }, [user]);
 
+  const wrapperRef = useRef(null)
+  useOutsideAlerter(wrapperRef)
+
   return(
     <div className="first-dashboard-container">
       {window.matchMedia("(max-width: 750px)").matches && 
-        <Button onClick={handleOpenSidenav} variant="contained" size="large" sx={{float: "left", margin: "10px",}} color="darkGrey" >
+        <Button onClick={handleOpenSidenav} variant="contained" size="large" sx={{ margin: "10px", right: "38%"}} color="darkGrey" >
           <KeyboardArrowRightIcon size="large" color="white" />
         </Button>
       }
-      <div id="mySidenav" className="sidenav">
+      <div id="mySidenav" className="sidenav" ref={wrapperRef}>
       {window.matchMedia("(max-width: 750px)").matches && 
         <Button onClick={handleCloseSidenav} variant="contained" size="large" color="darkGrey" >
           <KeyboardArrowLeftIcon size="large" color="white" />

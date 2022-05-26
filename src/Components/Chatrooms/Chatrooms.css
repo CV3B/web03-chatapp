@@ -72,8 +72,12 @@
 }
 
 @media screen and (max-width: 750px) {
+  .first-dashboard-container {
+    background-color: #111;
+  }
+
   .sidenav {
-    /* display: none; */
+    display: none;
     width: 250px;
   }
 
